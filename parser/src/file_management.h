@@ -51,6 +51,17 @@ elementT *read_line ( FILE *file ) {
 				break;
 			}
 
+			// Check if line has comments and skip it.
+			if ( ch[0] == '*' ) {
+				node->type = 'c';
+				size = fread(ch, sizeof(char), 1, file);
+				while ( ch[0] != '\n' ) {
+					size = fread(ch, sizeof(char), 1, file);
+				}
+
+				break;
+			}
+
 			// Create a dynamic string which size is equal with it's length.
 			item = (char *)realloc(item,characters_num * sizeof(char));
 
@@ -138,6 +149,11 @@ elementT *read_line ( FILE *file ) {
 
 		// Create node with the above information.
 		if (size != 0){
+			if ( node->type == 'c' ) {
+
+				return node;
+			}
+
 			node->type=type;
 			node->name=name;
 			node->pos_node=pos_node;
@@ -146,7 +162,6 @@ elementT *read_line ( FILE *file ) {
 			
 			return node;
 		}
-		
 	}
 
 	return NULL;
@@ -161,13 +176,17 @@ elementT *create_structure_by_file ( char *file_name ) {
 	file = fopen(file_name,"r");
 	element=read_line(file);
 	// Initialize the list of elements.
+	while ( element->type == 'c' ) {
+		element=read_line(file);
+	}
+
 	head = init_list(element);
 	tail = head;
 
 	// Read all file and 
 	while ( element != NULL){
 		element=read_line(file);
-		if (element != NULL){
+		if (element != NULL && element->type != 'c'){
 			tail = add_element(tail,element);
 		}
 	}
